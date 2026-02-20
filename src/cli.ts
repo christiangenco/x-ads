@@ -348,6 +348,40 @@ targeting
     await removeTargeting(opts.id, opts.account);
   });
 
+const audiences = program
+  .command("audiences")
+  .description("Manage tailored audiences (custom audience lists)");
+
+audiences
+  .command("list", { isDefault: true })
+  .description("List tailored audiences for an ad account")
+  .option("--account <id>", "Ad account ID (overrides X_AD_ACCOUNT_ID)")
+  .action(async (opts) => {
+    const { listAudiences } = await import("./commands/audiences.js");
+    await listAudiences(opts.account);
+  });
+
+audiences
+  .command("create")
+  .description("Create a new tailored audience container")
+  .requiredOption("--name <name>", "Audience name")
+  .requiredOption("--list-type <type>", "List type: EMAIL, DEVICE_ID, TWITTER_ID, HANDLE, PHONE_NUMBER")
+  .option("--account <id>", "Ad account ID (overrides X_AD_ACCOUNT_ID)")
+  .action(async (opts) => {
+    const { createAudience } = await import("./commands/audiences.js");
+    await createAudience(opts.name, opts.listType, opts.account);
+  });
+
+audiences
+  .command("remove")
+  .description("Remove a tailored audience")
+  .requiredOption("--id <id>", "Tailored audience ID")
+  .option("--account <id>", "Ad account ID (overrides X_AD_ACCOUNT_ID)")
+  .action(async (opts) => {
+    const { removeAudience } = await import("./commands/audiences.js");
+    await removeAudience(opts.id, opts.account);
+  });
+
 const media = program
   .command("media")
   .description("Media upload utilities");
