@@ -181,4 +181,54 @@ lineItems
     await removeLineItem(opts.id, opts.account);
   });
 
+const promotedTweets = program
+  .command("promoted-tweets")
+  .description("Manage promoted tweets (ads)");
+
+promotedTweets
+  .command("list", { isDefault: true })
+  .description("List promoted tweets for an ad account")
+  .option("--line-item <id>", "Filter by line item ID")
+  .option("--account <id>", "Ad account ID (overrides X_AD_ACCOUNT_ID)")
+  .action(async (opts) => {
+    const { listPromotedTweets } = await import("./commands/promoted-tweets.js");
+    await listPromotedTweets(opts.lineItem, opts.account);
+  });
+
+promotedTweets
+  .command("promote")
+  .description("Promote tweet(s) to a line item")
+  .requiredOption("--line-item <id>", "Line item ID")
+  .requiredOption("--tweet <ids...>", "Tweet ID(s) — repeat or comma-separate")
+  .option("--account <id>", "Ad account ID (overrides X_AD_ACCOUNT_ID)")
+  .action(async (opts) => {
+    const { promoteTweet } = await import("./commands/promoted-tweets.js");
+    // Flatten comma-separated values: --tweet 123,456 --tweet 789 → ["123","456","789"]
+    const tweetIds = (opts.tweet as string[]).flatMap((t: string) => t.split(",")).map((t: string) => t.trim()).filter(Boolean);
+    await promoteTweet(opts.lineItem, tweetIds, opts.account);
+  });
+
+promotedTweets
+  .command("create-tweet")
+  .description("Create a new tweet (does NOT promote it)")
+  .requiredOption("--text <text>", "Tweet text")
+  .option("--card <card_id>", "Card ID to attach")
+  .option("--media <media_ids>", "Media ID(s), comma-separated")
+  .option("--account <id>", "Ad account ID (overrides X_AD_ACCOUNT_ID)")
+  .action(async (opts) => {
+    const { createTweet } = await import("./commands/promoted-tweets.js");
+    const mediaIds = opts.media ? (opts.media as string).split(",").map((m: string) => m.trim()).filter(Boolean) : undefined;
+    await createTweet(opts.text, { cardId: opts.card, mediaIds });
+  });
+
+promotedTweets
+  .command("remove")
+  .description("Remove (un-promote) a promoted tweet")
+  .requiredOption("--id <id>", "Promoted tweet ID")
+  .option("--account <id>", "Ad account ID (overrides X_AD_ACCOUNT_ID)")
+  .action(async (opts) => {
+    const { removePromotedTweet } = await import("./commands/promoted-tweets.js");
+    await removePromotedTweet(opts.id, opts.account);
+  });
+
 program.parse();

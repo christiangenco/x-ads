@@ -108,6 +108,58 @@ export async function xApi(
   return json;
 }
 
+export async function twitterApi(
+  method: string,
+  path: string,
+  jsonBody?: Record<string, any>
+): Promise<any> {
+  const config = getConfig();
+
+  const cleanPath = path.replace(/^\//, "");
+  const fullUrl = `https://api.x.com/2/${cleanPath}`;
+
+  const oauth = new OAuth({
+    consumer: { key: config.apiKey, secret: config.apiSecret },
+    signature_method: "HMAC-SHA1",
+    hash_function(baseString: string, key: string) {
+      return crypto
+        .createHmac("sha1", key)
+        .update(baseString)
+        .digest("base64");
+    },
+  });
+
+  const token = { key: config.accessToken, secret: config.accessTokenSecret };
+
+  // For JSON POST bodies, only sign URL + method (body params are NOT included in OAuth signature)
+  const requestData: OAuth.RequestOptions = { url: fullUrl, method: method.toUpperCase() };
+  const authHeader = oauth.toHeader(oauth.authorize(requestData, token));
+
+  const fetchOptions: RequestInit = {
+    method: method.toUpperCase(),
+    headers: {
+      ...authHeader,
+      "Content-Type": "application/json",
+    },
+  };
+
+  if (jsonBody && (method.toUpperCase() === "POST" || method.toUpperCase() === "PUT")) {
+    fetchOptions.body = JSON.stringify(jsonBody);
+  }
+
+  const response = await fetch(fullUrl, fetchOptions);
+  const json = await response.json();
+
+  if (json.errors) {
+    for (const err of json.errors) {
+      console.error(`Error: ${err.message || err.detail} (code: ${err.code || err.type})`);
+    }
+    process.exit(1);
+  }
+
+  return json;
+}
+
 export async function xApiFetchAllPages(
   method: string,
   path: string,
