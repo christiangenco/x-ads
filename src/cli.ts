@@ -111,4 +111,74 @@ campaigns
     await removeCampaign(opts.id, opts.account);
   });
 
+const lineItems = program
+  .command("line-items")
+  .description("Manage line items (targeting containers with objectives)");
+
+lineItems
+  .command("list", { isDefault: true })
+  .description("List line items for an ad account")
+  .option("--campaign <id>", "Filter by campaign ID")
+  .option("--account <id>", "Ad account ID (overrides X_AD_ACCOUNT_ID)")
+  .action(async (opts) => {
+    const { listLineItems } = await import("./commands/line-items.js");
+    await listLineItems(opts.campaign, opts.account);
+  });
+
+lineItems
+  .command("create")
+  .description("Create a new line item")
+  .requiredOption("--campaign <id>", "Parent campaign ID")
+  .requiredOption("--name <name>", "Line item name")
+  .requiredOption("--objective <obj>", "Objective: AWARENESS, TWEET_ENGAGEMENTS, VIDEO_VIEWS, WEBSITE_CLICKS, etc.")
+  .option("--product-type <type>", "Product type", "PROMOTED_TWEETS")
+  .option("--placements <p1,p2>", "Placements (comma-separated)", "ALL_ON_TWITTER")
+  .option("--bid <usd>", "Bid amount in USD")
+  .option("--bid-type <type>", "Bid type: AUTO, MAX, or TARGET")
+  .option("--auto-bid", "Use automatic bidding")
+  .option("--total-budget <usd>", "Total budget in USD")
+  .option("--status <status>", "Entity status: ACTIVE, PAUSED, or DRAFT", "PAUSED")
+  .option("--start-time <date>", "Start time (ISO 8601)")
+  .option("--end-time <date>", "End time (ISO 8601)")
+  .option("--account <id>", "Ad account ID (overrides X_AD_ACCOUNT_ID)")
+  .action(async (opts) => {
+    const { createLineItem } = await import("./commands/line-items.js");
+    await createLineItem(opts, opts.account);
+  });
+
+lineItems
+  .command("update")
+  .description("Update an existing line item")
+  .requiredOption("--id <id>", "Line item ID")
+  .option("--name <name>", "New line item name")
+  .option("--status <status>", "Entity status: ACTIVE, PAUSED, or DRAFT")
+  .option("--bid <usd>", "Bid amount in USD")
+  .option("--auto-bid", "Use automatic bidding")
+  .option("--total-budget <usd>", "Total budget in USD")
+  .option("--account <id>", "Ad account ID (overrides X_AD_ACCOUNT_ID)")
+  .action(async (opts) => {
+    const { updateLineItem } = await import("./commands/line-items.js");
+    await updateLineItem(opts, opts.account);
+  });
+
+lineItems
+  .command("pause")
+  .description("Pause a line item")
+  .requiredOption("--id <id>", "Line item ID")
+  .option("--account <id>", "Ad account ID (overrides X_AD_ACCOUNT_ID)")
+  .action(async (opts) => {
+    const { pauseLineItem } = await import("./commands/line-items.js");
+    await pauseLineItem(opts.id, opts.account);
+  });
+
+lineItems
+  .command("remove")
+  .description("Remove (soft-delete) a line item")
+  .requiredOption("--id <id>", "Line item ID")
+  .option("--account <id>", "Ad account ID (overrides X_AD_ACCOUNT_ID)")
+  .action(async (opts) => {
+    const { removeLineItem } = await import("./commands/line-items.js");
+    await removeLineItem(opts.id, opts.account);
+  });
+
 program.parse();
